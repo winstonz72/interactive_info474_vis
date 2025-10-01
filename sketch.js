@@ -36,12 +36,12 @@ function draw() {
 
 
   // draw line for horizon
-  stroke('lavender');
+  stroke('purple');
   line(0,horizon,width,horizon);
 
   //grass
 
-  fill("lavender");
+  fill("purple");
 
   rect(0, horizon, width, height);
 
