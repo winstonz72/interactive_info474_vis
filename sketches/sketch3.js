@@ -1,10 +1,12 @@
 registerSketch('sk3', function (p) {
   let horizonY, arcHeight;
+  let startTime;
 
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.noStroke();
     p.textAlign(p.CENTER, p.CENTER);
+    startTime = p.millis();
     horizonY = p.height * 0.70;
     arcHeight = p.height * 0.40;
   };
@@ -26,11 +28,12 @@ registerSketch('sk3', function (p) {
   }
 
   p.draw = function () {
-    p.background(220);
+    const h = p.hour(), m = p.minute(), s = p.second();
+    const isDay = h >= 6 && h < 18;
+    p.background(isDay ? 180 : 20, isDay ? 220 : 25, isDay ? 255 : 50);
     p.fill(60, 120, 70);
     p.rect(0, horizonY, p.width, p.height - horizonY);
-
-    const h = p.hour(), m = p.minute(), s = p.second();
+    
     const cx = p.width / 2;
 
     // Sun visible 06:00–18:00, peak at 12:00
