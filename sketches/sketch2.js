@@ -38,9 +38,8 @@ registerSketch('sk2', function (p) {
     // Angles
     const hourAngle = hr * 30 + mn * 0.5;
     const minAngle  = mn * 6 + sc * 0.1;
-    const secAngle  = sc * 6;            // <-- define this
+    const secAngle  = sc * 6;
 
-    // Draw all hands + center cap in one transformed block
     p.push();
     p.translate(cx, cy);
     p.rotate(-90);
@@ -55,7 +54,7 @@ registerSketch('sk2', function (p) {
     p.strokeWeight(4);
     p.line(0, 0, (R * 0.7) * p.cos(minAngle), (R * 0.7) * p.sin(minAngle));
 
-    // Second hand (red)
+    // Second hand
     p.stroke(200, 0, 0); 
     p.strokeWeight(2);
     p.line(0, 0, (R * 0.85) * p.cos(secAngle), (R * 0.85) * p.sin(secAngle));
