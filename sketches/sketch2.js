@@ -30,16 +30,29 @@ registerSketch('sk2', function (p) {
       p.text(numerals[i], x, y);
     }
 
-    // Time & hour hand
+    // Time
     const hr = p.hour() % 12;
     const mn = p.minute();
-    const hourAngle = hr * 30 + mn * 0.5;
+    const sc = p.second();
 
+    // Angles
+    const hourAngle = hr * 30 + mn * 0.5;
+    const minAngle  = mn * 6 + sc * 0.1;
+
+    // Hour hand
     p.push();
     p.translate(cx, cy);
     p.rotate(-90);
     p.stroke(0); p.strokeWeight(6);
     p.line(0, 0, (R * 0.5) * p.cos(hourAngle), (R * 0.5) * p.sin(hourAngle));
+    p.pop();
+
+    // Minute hand
+    p.push();
+    p.translate(cx, cy);
+    p.rotate(-90);
+    p.stroke(0); p.strokeWeight(4);
+    p.line(0, 0, (R * 0.7) * p.cos(minAngle), (R * 0.7) * p.sin(minAngle));
     p.pop();
   };
 });
