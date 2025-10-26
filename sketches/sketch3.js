@@ -41,11 +41,20 @@ registerSketch('sk3', function (p) {
       p.ellipse(cx, y, 100, 100);
     };
 
+    // Moon visible 18:00-06:00, peak at 00:00
     const moonProg = windowProgress(18, 6, h, m, s);
     if (moonProg >= 0) {
       const y = horizonY - arcHeight * Math.sin(Math.PI * moonProg);
       p.fill(235);
       p.ellipse(cx, y, 80, 80);
     }
+
+    // Digital clock (HH:MM:SS AM/PM)
+    const pad = n => (n < 10 ? '0' + n : '' + n);
+    const hh12 = (h % 12) === 0 ? 12 : (h % 12);
+    const ampm = h < 12 ? 'AM' : 'PM';
+    p.fill(0);
+    p.textSize(20);
+    p.text(`${pad(hh12)}:${pad(m)}:${pad(s)} ${ampm}`, cx, horizonY + 40);
   };
 });
