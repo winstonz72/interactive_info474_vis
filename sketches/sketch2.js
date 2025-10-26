@@ -38,9 +38,8 @@ registerSketch('sk2', function (p) {
     // Angles
     const hourAngle = hr * 30 + mn * 0.5;
     const minAngle  = mn * 6 + sc * 0.1;
-    const secAngle  = sc * 6;            // <-- define this
-
-    // Draw all hands + center cap in one transformed block
+    const secAngle  = sc * 6;
+    
     p.push();
     p.translate(cx, cy);
     p.rotate(-90);
