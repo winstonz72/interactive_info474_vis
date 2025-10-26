@@ -24,11 +24,8 @@ const SKETCH_SCRIPT_BY_ID = {
     sk13: 'sketches/sketch13.js',
     sk14: 'sketches/sketch14.js',
 };
+window.DEFAULT_SKETCH = 'sk2'
 
-// Default sketch selection logic:
-// 1) URL query `?tab=sk3` or `?tab=tab3` will select that tab on load
-// 2) or set `window.DEFAULT_SKETCH = 'sk2'` in the page before this script to choose a default
-// 3) otherwise the first tab is used
 function getDefaultButton(buttons) {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab') || params.get('sketch');

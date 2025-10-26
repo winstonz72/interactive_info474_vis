@@ -1,5 +1,6 @@
 registerSketch('sk2', function (p) {
   const W = 800, H = 800;
+  const R = 300;
 
   p.setup = function () {
     p.createCanvas(W, H);
@@ -10,5 +11,13 @@ registerSketch('sk2', function (p) {
 
   p.draw = function () {
     p.background(240);
+    
+    const cx = W / 2, cy = H / 2;
+
+    // Outer dial
+    p.noFill();
+    p.stroke(0);
+    p.strokeWeight(3);
+    p.circle(cx, cy, R * 2);
   };
 });
