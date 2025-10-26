@@ -29,5 +29,17 @@ registerSketch('sk2', function (p) {
       const y = cy + (R - 40) * p.sin(angle);
       p.text(numerals[i], x, y);
     }
+
+    // Time & hour hand
+    const hr = p.hour() % 12;
+    const mn = p.minute();
+    const hourAngle = hr * 30 + mn * 0.5;
+
+    p.push();
+    p.translate(cx, cy);
+    p.rotate(-90);
+    p.stroke(0); p.strokeWeight(6);
+    p.line(0, 0, (R * 0.5) * p.cos(hourAngle), (R * 0.5) * p.sin(hourAngle));
+    p.pop();
   };
 });
