@@ -16,7 +16,7 @@ registerSketch('sk3', function (p) {
   };
 
   function windowProgress(startHour, endHour, h, m, s) {
-    const t = h + m / 60 + s / 3600; // 0..24
+    const t = h + m / 60 + s / 3600;
     let st = startHour, en = endHour;
     if (en <= st) en += 24;
     let tt = t;
@@ -36,9 +36,16 @@ registerSketch('sk3', function (p) {
     // Sun visible 06:00–18:00, peak at 12:00
     const sunProg = windowProgress(6, 18, h, m, s);
     if (sunProg >= 0) {
-      const y = horizonY - arcHeight * Math.sin(Math.PI * sunProg); // 0..1..0
+      const y = horizonY - arcHeight * Math.sin(Math.PI * sunProg);
       p.fill(255, 210, 80);
       p.ellipse(cx, y, 100, 100);
     };
+
+    const moonProg = windowProgress(18, 6, h, m, s);
+    if (moonProg >= 0) {
+      const y = horizonY - arcHeight * Math.sin(Math.PI * moonProg);
+      p.fill(235);
+      p.ellipse(cx, y, 80, 80);
+    }
   };
 });
