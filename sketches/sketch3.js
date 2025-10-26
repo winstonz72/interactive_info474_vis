@@ -1,21 +1,44 @@
 registerSketch('sk3', function (p) {
-  let horizonY;
+  let horizonY, arcHeight;
 
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.noStroke();
     p.textAlign(p.CENTER, p.CENTER);
     horizonY = p.height * 0.70;
+    arcHeight = p.height * 0.40;
   };
 
   p.windowResized = function () {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
     horizonY = p.height * 0.70;
+    arcHeight = p.height * 0.40;
   };
+
+  function windowProgress(startHour, endHour, h, m, s) {
+    const t = h + m / 60 + s / 3600; // 0..24
+    let st = startHour, en = endHour;
+    if (en <= st) en += 24;
+    let tt = t;
+    if (tt < st) tt += 24;
+    if (tt >= en) return -1;
+    return (tt - st) / (en - st);
+  }
 
   p.draw = function () {
     p.background(220);
     p.fill(60, 120, 70);
     p.rect(0, horizonY, p.width, p.height - horizonY);
+
+    const h = p.hour(), m = p.minute(), s = p.second();
+    const cx = p.width / 2;
+
+    // Sun visible 06:00–18:00, peak at 12:00
+    const sunProg = windowProgress(6, 18, h, m, s);
+    if (sunProg >= 0) {
+      const y = horizonY - arcHeight * Math.sin(Math.PI * sunProg); // 0..1..0
+      p.fill(255, 210, 80);
+      p.ellipse(cx, y, 100, 100);
+    };
   };
 });
