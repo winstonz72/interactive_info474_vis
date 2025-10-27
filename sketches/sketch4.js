@@ -14,6 +14,13 @@ registerSketch('sk4', function (p) {
     resetBtn.position(cx + 40, y);
   }
 
+  function fmt(t) {
+    t = Math.max(0, Math.floor(t));
+    const m = Math.floor(t / 60);
+    const s = t % 60;
+    return m + ":" + (s < 10 ? "0" + s : s);
+  }
+
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.noStroke();
@@ -45,7 +52,6 @@ registerSketch('sk4', function (p) {
     } else {
       lastMillis = p.millis();
     }
-    const progress = 1 - (remainingSec / durationSec);
 
     p.background(235);
 
@@ -67,7 +73,7 @@ registerSketch('sk4', function (p) {
 
     // Wick & flame
     p.fill(50);
-    p.rect(cx - 2, baseY - candle.maxH - 10, 4, 12, 2);
+    p.rect(cx - 2, candleTopY - 10, 4, 12, 2);
     if (remainingSec > 0) {
       p.fill(255, 180, 60);
       p.ellipse(cx, candleTopY - 22, 40, 56);
@@ -75,5 +81,10 @@ registerSketch('sk4', function (p) {
       p.fill(150);
       p.ellipse(cx, candleTopY - 18, 10, 12);
     }
+
+    // Remaining Time Text
+    p.fill(30);
+    p.textSize(24);
+    p.text(fmt(remainingSec), cx, baseY + 100);
   };
 });
