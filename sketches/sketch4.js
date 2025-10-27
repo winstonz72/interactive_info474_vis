@@ -71,17 +71,24 @@ registerSketch('sk4', function (p) {
     p.fill(255, 240, 205);
     p.rect(candle.x, candleTopY, candle.w, h, 10);
 
-    // Wick & flame
+    // Wick
     p.fill(50);
     p.rect(cx - 2, candleTopY - 10, 4, 12, 2);
-    if (remainingSec > 0) {
-      p.fill(255, 180, 60);
-      p.ellipse(cx, candleTopY - 22, 40, 56);
-    } else {
-      p.fill(150);
-      p.ellipse(cx, candleTopY - 18, 10, 12);
-    }
 
+    // Flame
+    if (remainingSec > 0) {
+      const t = p.millis() * 0.006;
+      const fw = 40 * (0.95 + 0.08 * p.sin(t)) + p.random(-1, 1);
+      const fh = 56 * (0.95 + 0.10 * p.sin(t + 0.7)) + p.random(-1, 1);
+      // glow
+      p.fill(255, 140, 40, 60); p.ellipse(cx, candleTopY - 20, fw * 2.0, fh * 1.8);
+      // core
+      p.fill(255, 180, 60); p.ellipse(cx, candleTopY - 22, fw, fh);
+      // hot center
+      p.fill(255, 235, 180, 200); p.ellipse(cx, candleTopY - 18, fw * 0.45, fh * 0.45);
+    } else {
+      p.fill(150); p.ellipse(cx, candleTopY - 18, 10, 12);
+    }
     // Remaining Time Text
     p.fill(30);
     p.textSize(24);
