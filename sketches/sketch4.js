@@ -4,15 +4,35 @@ registerSketch('sk4', function (p) {
   let remainingSec = 60;
   let running = false;
   let lastMillis = 0;
+  let startBtn, pauseBtn, resetBtn;
+
+  function layoutUI() {
+    const cx = p.width / 2;
+    const y = p.height - 80;
+    startBtn.position(cx - 120, y);
+    pauseBtn.position(cx - 40, y);
+    resetBtn.position(cx + 40, y);
+  }
 
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.noStroke();
     p.textAlign(p.CENTER, p.CENTER);
+
+    startBtn = p.createButton('Start');
+    pauseBtn = p.createButton('Pause');
+    resetBtn = p.createButton('Reset');
+
+    startBtn.mousePressed(() => { running = true; lastMillis = p.millis(); });
+    pauseBtn.mousePressed(() => { running = false; });
+    resetBtn.mousePressed(() => { running = false; remainingSec = durationSec; });
+
+    layoutUI();
   };
 
   p.windowResized = function () {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
+    layoutUI();
   };
 
   p.draw = function () {
@@ -25,6 +45,7 @@ registerSketch('sk4', function (p) {
     } else {
       lastMillis = p.millis();
     }
+    const progress = 1 - (remainingSec / durationSec);
 
     p.background(235);
 
@@ -44,26 +65,15 @@ registerSketch('sk4', function (p) {
     p.fill(255, 240, 205);
     p.rect(candle.x, candleTopY, candle.w, h, 10);
 
-    // Wick
+    // Wick & flame
     p.fill(50);
     p.rect(cx - 2, baseY - candle.maxH - 10, 4, 12, 2);
-
-    // Flame Ellipse
     if (remainingSec > 0) {
       p.fill(255, 180, 60);
       p.ellipse(cx, candleTopY - 22, 40, 56);
     } else {
-      // simple smoke when finished
       p.fill(150);
       p.ellipse(cx, candleTopY - 18, 10, 12);
     }
-
-    // readout
-    p.fill(30);
-    p.textSize(20);
-    const t = Math.max(0, Math.floor(remainingSec));
-    const mm = Math.floor(t / 60);
-    const ss = t % 60;
-    p.text(mm + ":" + (ss < 10 ? "0" + ss : ss), cx, baseY + 60);
   };
 });
