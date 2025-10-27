@@ -16,7 +16,8 @@ registerSketch('sk4', function (p) {
 
   const fmt = t => { 
     t = Math.max(0, Math.floor(t)); 
-    const m = Math.floor(t/60), s = t%60; return m+":"+(s<10?"0"+s:s); };
+    const m = Math.floor(t/60), s = t%60; 
+    return m+":"+(s<10?"0"+s:s); };
 
 
   p.setup = function () {
@@ -95,14 +96,14 @@ registerSketch('sk4', function (p) {
       const t = p.millis() * 0.006;
       const fw = 40 * (0.95 + 0.08 * p.sin(t)) + p.random(-1, 1);
       const fh = 56 * (0.95 + 0.10 * p.sin(t + 0.7)) + p.random(-1, 1);
-      // glow
       p.fill(255, 140, 40, 60); p.ellipse(cx, candleTopY - 20, fw * 2.0, fh * 1.8);
-      // core
       p.fill(255, 180, 60); p.ellipse(cx, candleTopY - 22, fw, fh);
-      // hot center
       p.fill(255, 235, 180, 200); p.ellipse(cx, candleTopY - 18, fw * 0.45, fh * 0.45);
     } else {
-      p.fill(150); p.ellipse(cx, candleTopY - 18, 10, 12);
+      const yOff = (p.frameCount % 60) * 0.7;
+      const smokeR = 12 + 4 * p.sin(p.frameCount * 0.1);
+      p.fill(170, 170, 185, 150);
+      p.ellipse(cx, candleTopY - 18 - yOff, smokeR, smokeR * 1.2);
     }
     // Remaining Time Text
     p.fill(30);
