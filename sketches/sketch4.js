@@ -14,12 +14,10 @@ registerSketch('sk4', function (p) {
     resetBtn.position(cx + 40, y);
   }
 
-  function fmt(t) {
-    t = Math.max(0, Math.floor(t));
-    const m = Math.floor(t / 60);
-    const s = t % 60;
-    return m + ":" + (s < 10 ? "0" + s : s);
-  }
+  const fmt = t => { 
+    t = Math.max(0, Math.floor(t)); 
+    const m = Math.floor(t/60), s = t%60; return m+":"+(s<10?"0"+s:s); };
+
 
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
@@ -59,17 +57,34 @@ registerSketch('sk4', function (p) {
     const baseY = p.height / 2 + 160;
     candle.x = cx - candle.w / 2;
     candle.baseY = baseY;
+    const progress = 1 - (remainingSec / durationSec);
+    const h = candle.maxH * (remainingSec / durationSec);
+    const candleTopY = baseY - h;
 
     // Table
     p.fill(210);
     p.rect(0, baseY + 28, p.width, p.height - (baseY + 28));
 
-    const h = candle.maxH * (remainingSec / durationSec);
-    const candleTopY = baseY - h;
+    // wax pool
+    const poolW = p.map(progress, 0, 1, 40, 220);
+    const poolH = p.map(progress, 0, 1, 8, 22);
+    p.fill(255, 220, 180, 230);
+    p.ellipse(cx, baseY + 18, poolW, poolH);
 
     // Candle body
     p.fill(255, 240, 205);
     p.rect(candle.x, candleTopY, candle.w, h, 10);
+
+    // drips
+    p.fill(255, 230, 190, 210);
+    const drips = Math.floor(progress * 12);
+    for (let i = 0; i < drips; i++) {
+      const dx = p.map(i % 6, 0, 5, 6, candle.w - 12);
+      const len = 6 + (i % 5) * 5;
+      const x = cx - candle.w / 2 + dx;
+      const y = p.map(i, 0, drips, candleTopY + 18, baseY - 10);
+      p.rect(x, y, 6, len, 3);
+    }
 
     // Wick
     p.fill(50);
