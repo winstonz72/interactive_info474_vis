@@ -4,14 +4,22 @@ registerSketch('sk4', function (p) {
   let remainingSec = 60;
   let running = false;
   let lastMillis = 0;
+  let minInput, secInput,  minLabel, secLabel;;
   let startBtn, pauseBtn, resetBtn;
 
   function layoutUI() {
     const cx = p.width / 2;
     const y = p.height - 80;
-    startBtn.position(cx - 120, y);
-    pauseBtn.position(cx - 40, y);
-    resetBtn.position(cx + 40, y);
+
+    minInput.position(cx - 200, y);
+    secInput.position(cx - 120, y);
+
+    minLabel.position(cx - 200, y + 30);
+    secLabel.position(cx - 120, y + 30);
+
+    startBtn.position(cx - 20, y);
+    pauseBtn.position(cx + 50, y);
+    resetBtn.position(cx + 130, y);
   }
 
   const fmt = t => { 
@@ -19,11 +27,34 @@ registerSketch('sk4', function (p) {
     const m = Math.floor(t/60), s = t%60; 
     return m+":"+(s<10?"0"+s:s); };
 
-
+    // Read inputs
+    function applyDuration() {
+    const m = Math.max(0, parseInt(minInput.value() || "0", 10));
+    let s = Math.max(0, parseInt(secInput.value() || "0", 10));
+    if (s > 59) s = 59;
+    durationSec  = Math.max(1, m * 60 + s);
+    remainingSec = durationSec;
+  }
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.noStroke();
     p.textAlign(p.CENTER, p.CENTER);
+
+    minInput = p.createInput('1', 'number');
+    minInput.attribute('min', '0');
+    minInput.size(60);
+
+    secInput = p.createInput('0', 'number');
+    secInput.attribute('min', '0');
+    secInput.attribute('max', '59');
+    secInput.size(60);
+
+    minLabel = p.createP('Minutes');
+    secLabel = p.createP('Seconds');
+    minLabel.style('font-size', '12px');
+    secLabel.style('font-size', '12px');
+    minLabel.style('margin', '0');
+    secLabel.style('margin', '0');
 
     startBtn = p.createButton('Start');
     pauseBtn = p.createButton('Pause');
