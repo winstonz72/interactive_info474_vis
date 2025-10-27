@@ -52,15 +52,20 @@ registerSketch('sk4', function (p) {
       lastMillis = p.millis();
     }
 
-    p.background(235);
-
     const cx = p.width / 2;
     const baseY = p.height / 2 + 160;
     candle.x = cx - candle.w / 2;
     candle.baseY = baseY;
+
     const progress = 1 - (remainingSec / durationSec);
     const h = candle.maxH * (remainingSec / durationSec);
     const candleTopY = baseY - h;
+
+    // ambient background
+    const cool = p.color(235, 235, 235);
+    const warm = p.color(120, 30, 30);
+    const bg = p.lerpColor(cool, warm, progress * 0.6);
+    p.background(bg);
 
     // Table
     p.fill(210);
