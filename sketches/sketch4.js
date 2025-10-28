@@ -31,16 +31,19 @@ registerSketch('sk4', function (p) {
     function applyDuration() {
     const m = Math.max(0, parseInt(minInput.value() || "0", 10));
     let s = Math.max(0, parseInt(secInput.value() || "0", 10));
+    if (isNaN(s)) s = 0;
     if (s > 59) s = 59;
+
     durationSec  = Math.max(1, m * 60 + s);
     remainingSec = durationSec;
   }
+
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.noStroke();
     p.textAlign(p.CENTER, p.CENTER);
 
-    minInput = p.createInput('1', 'number');
+    minInput = p.createInput('0', 'number');
     minInput.attribute('min', '0');
     minInput.size(60);
 
@@ -49,22 +52,44 @@ registerSketch('sk4', function (p) {
     secInput.attribute('max', '59');
     secInput.size(60);
 
+    minInput.input(() => { if (!running) applyDuration(); });
+    secInput.input(() => { if (!running) applyDuration(); });
+
     minLabel = p.createP('Minutes');
     secLabel = p.createP('Seconds');
-    minLabel.style('font-size', '12px');
-    secLabel.style('font-size', '12px');
-    minLabel.style('margin', '0');
-    secLabel.style('margin', '0');
+    [minLabel, secLabel].forEach(el => {
+      el.style('font-size', '12px');
+      el.style('margin', '0');
+      el.style('color', '#222');
+    });
 
     startBtn = p.createButton('Start');
     pauseBtn = p.createButton('Pause');
     resetBtn = p.createButton('Reset');
 
-    startBtn.mousePressed(() => { running = true; lastMillis = p.millis(); });
+    startBtn.mousePressed(() => {
+      minInput.elt.blur();
+      secInput.elt.blur();
+      applyDuration();
+      running = true;
+      lastMillis = p.millis();
+    });
     pauseBtn.mousePressed(() => { running = false; });
-    resetBtn.mousePressed(() => { running = false; remainingSec = durationSec; });
+    resetBtn.mousePressed(() => {
+      minInput.elt.blur();
+      secInput.elt.blur();
+      running = false;
+      applyDuration();
+    });
+
+    [minInput, secInput].forEach(inp => {
+      inp.elt.addEventListener('keydown', e => {
+        if (e.key === 'Enter') startBtn.elt.click();
+      });
+    });
 
     layoutUI();
+    applyDuration();
   };
 
   p.windowResized = function () {
