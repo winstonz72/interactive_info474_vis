@@ -24,7 +24,7 @@ const SKETCH_SCRIPT_BY_ID = {
     sk13: 'sketches/sketch13.js',
     sk14: 'sketches/sketch14.js',
 };
-window.DEFAULT_SKETCH = 'sk2'
+window.DEFAULT_SKETCH = 'sk4'
 
 function getDefaultButton(buttons) {
     const params = new URLSearchParams(window.location.search);
