@@ -1,14 +1,13 @@
-window.sketch5 = function(p) {
+// sketches/sketch5.js
+window.registerSketch('sk5', function (p) {
   const CSV_PATH = "CarsData.csv";
 
-  // Segment Colors
   const SEGMENT_COLORS = {
     "Luxury":    [220, 70, 60],
     "Mid-range": [60, 110, 220],
     "Economy":   [40, 160, 120],
   };
 
-  // Segment Brand
   const LUXURY = [
     "Acura","Alfa Romeo","Aston Martin","Audi","Bentley","BMW","Bugatti","Cadillac",
     "Ferrari","Genesis","Infiniti","Jaguar","Karma","Lamborghini","Land Rover","Lexus",
@@ -25,7 +24,6 @@ window.sketch5 = function(p) {
   ];
 
   const norm = (s) => (s || "").toLowerCase().replace(/[^a-z]/g, "");
-
   const brandToSegment = new Map();
   LUXURY.forEach(b => brandToSegment.set(norm(b), "Luxury"));
   MIDRANGE.forEach(b => brandToSegment.set(norm(b), "Mid-range"));
@@ -34,85 +32,126 @@ window.sketch5 = function(p) {
   const PAD = { top: 70, right: 30, bottom: 64, left: 84 };
   let plotW, plotH;
 
-  let table;
-  const REQUIRED = ["Brand", "Model", "Year", "Status", "Mileage", "Price"];
-  let colIdx = {};
-  let allRows = []; 
-  let filteredRows = []; 
-  let sampleRows = []; 
+  let allRows = [];
+  let filteredRows = [];
+  let sampleRows = [];
 
-  let xMin, xMax, yMin, yMax;
+  let xMin = 0, xMax = 1, yMin = 0, yMax = 1;
 
   let uiContainer;
   let cbLuxury, cbMid, cbEco;
   let inputSample, btnApply;
   let showSeg = { "Luxury": true, "Mid-range": true, "Economy": true };
 
-  p.preload = function() {
-    table = p.loadTable(CSV_PATH, "csv", "header");
-  };
+  let dataReady = false;
+  let loadError = null;
 
-  p.setup = function() {
+  p.setup = function () {
     p.createCanvas(900, 700);
     plotW = p.width - PAD.left - PAD.right;
     plotH = p.height - PAD.top - PAD.bottom;
 
-    const headers = table.columns;
-    const lower = headers.map(h => (h || "").toLowerCase().trim());
-    const findCol = (name) => {
-      const i = lower.indexOf(name.toLowerCase());
-      return i >= 0 ? i : -1;
-    };
-    REQUIRED.forEach(req => {
-      const idx = findCol(req);
-      if (idx === -1) {
-        console.warn(`Missing column "${req}". Present: ${headers.join(", ")}`);
-      } else {
-        colIdx[req] = headers[idx];
-      }
-    });
-
-    const toNumber = (s) => {
-      if (s == null) return NaN;
-      s = String(s)
-        .replace(/[\$,]/g, "")
-        .replace(/\bmi\b/gi, "")
-        .replace(/[^0-9.\-]/g, "")
-        .trim();
-      const v = Number(s);
-      return Number.isFinite(v) ? v : NaN;
-    };
-    const get = (r, name) => {
-      const h = colIdx[name];
-      return h ? table.getString(r, h) : null;
-    };
-
-    for (let r = 0; r < table.getRowCount(); r++) {
-      const Brand  = (get(r, "Brand")  || "").trim();
-      const Model  = (get(r, "Model")  || "").trim();
-      const Year   = toNumber(get(r, "Year"));
-      const Status = (get(r, "Status") || "").trim();
-      const Mileage= toNumber(get(r, "Mileage"));
-      const Price  = toNumber(get(r, "Price"));
-
-      if (!Brand || !Number.isFinite(Price) || !Number.isFinite(Mileage) || Price > 1_000_000) continue;
-
-      const seg = brandToSegment.get(norm(Brand)) || "Mid-range";
-      allRows.push({ Brand, Model, Year, Status, Mileage, Price, Segment: seg });
-    }
-
     buildUI();
-    updateFilterAndSample();
-    computeDomains();
-    p.noLoop();
+    fetchCsvAndParse();
+
+    p.noLoop(); // we’ll manually redraw when data/UI changes
   };
 
-  p.draw = function() {
+  function fetchCsvAndParse() {
+    fetch(CSV_PATH)
+      .then(res => {
+        console.log("Fetch status for CSV:", res.status, res.url);
+        if (!res.ok) throw new Error("HTTP " + res.status + " when loading " + CSV_PATH);
+        return res.text();
+      })
+      .then(text => {
+        console.log("CSV text length:", text.length);
+        allRows = parseCsv(text);
+        console.log("Parsed usable rows:", allRows.length);
+        dataReady = true;
+        loadError = (allRows.length === 0) ? "No usable rows parsed from CSV." : null;
+        updateFilterAndSample();
+      })
+      .catch(err => {
+        console.error("Failed to load/parse CSV:", err);
+        loadError = err.message;
+        dataReady = false;
+        p.redraw();
+      });
+  }
+
+  // very simple CSV parser (assumes no commas inside fields)
+  function parseCsv(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(",").map(h => h.trim());
+    console.log("Headers:", headers);
+
+    const idxBrand   = headers.indexOf("Brand");
+    const idxModel   = headers.indexOf("Model");
+    const idxYear    = headers.indexOf("Year");
+    const idxStatus  = headers.indexOf("Status");
+    const idxMileage = headers.indexOf("Mileage");
+    const idxPrice   = headers.indexOf("Price");
+
+    if ([idxBrand, idxModel, idxYear, idxStatus, idxMileage, idxPrice].some(i => i === -1)) {
+      console.warn("One or more required columns not found in CSV header.");
+      return [];
+    }
+
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(",");
+      if (cols.length < headers.length) continue;
+
+      const Brand  = (cols[idxBrand]  || "").trim();
+      const Model  = (cols[idxModel]  || "").trim();
+      const Year   = toNumber(cols[idxYear]);
+      const Status = (cols[idxStatus] || "").trim();
+      const Mileage= toNumber(cols[idxMileage]);
+      const Price  = toNumber(cols[idxPrice]);
+
+      if (!Brand || !Number.isFinite(Mileage) || !Number.isFinite(Price)) continue;
+
+      const seg = brandToSegment.get(norm(Brand)) || "Mid-range";
+      rows.push({ Brand, Model, Year, Status, Mileage, Price, Segment: seg });
+    }
+    return rows;
+  }
+
+  function toNumber(s) {
+    if (s == null) return NaN;
+    s = String(s)
+      .replace(/[\$,]/g, "")
+      .replace(/\bmi\b/gi, "")
+      .replace(/[^0-9.\-]/g, "")
+      .trim();
+    const v = Number(s);
+    return Number.isFinite(v) ? v : NaN;
+  }
+
+  p.draw = function () {
     p.background(250);
     drawTitle();
     drawAxes();
-    drawPoints();
     drawLegend();
+
+    if (!dataReady) {
+      p.fill(80);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text(loadError ? ("Error: " + loadError) : "Loading data…", p.width / 2, p.height / 2);
+      return;
+    }
+
+    if (allRows.length === 0) {
+      p.fill(80);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text("No usable rows from CarsData.csv", p.width / 2, p.height / 2);
+      return;
+    }
+
+    drawPoints();
   };
 
   function buildUI() {
@@ -128,15 +167,15 @@ window.sketch5 = function(p) {
 
     cbLuxury = p.createCheckbox("Luxury", true);
     cbLuxury.parent(uiContainer);
-    cbLuxury.changed(() => { showSeg["Luxury"] = cbLuxury.checked(); updateFilterAndSample(true); });
+    cbLuxury.changed(() => { showSeg["Luxury"] = cbLuxury.checked(); updateFilterAndSample(); });
 
     cbMid = p.createCheckbox("Mid-range", true);
     cbMid.parent(uiContainer);
-    cbMid.changed(() => { showSeg["Mid-range"] = cbMid.checked(); updateFilterAndSample(true); });
+    cbMid.changed(() => { showSeg["Mid-range"] = cbMid.checked(); updateFilterAndSample(); });
 
     cbEco = p.createCheckbox("Economy", true);
     cbEco.parent(uiContainer);
-    cbEco.changed(() => { showSeg["Economy"] = cbEco.checked(); updateFilterAndSample(true); });
+    cbEco.changed(() => { showSeg["Economy"] = cbEco.checked(); updateFilterAndSample(); });
 
     const labelSample = p.createSpan(" Sample size:");
     labelSample.parent(uiContainer);
@@ -149,10 +188,15 @@ window.sketch5 = function(p) {
 
     btnApply = p.createButton("Apply / Resample");
     btnApply.parent(uiContainer);
-    btnApply.mousePressed(() => updateFilterAndSample(false));
+    btnApply.mousePressed(() => updateFilterAndSample());
   }
 
   function updateFilterAndSample() {
+    if (!dataReady || allRows.length === 0) {
+      p.redraw();
+      return;
+    }
+
     filteredRows = allRows.filter(d => showSeg[d.Segment]);
 
     const val = inputSample.value();
@@ -181,17 +225,30 @@ window.sketch5 = function(p) {
 
   function computeDomains() {
     const src = (sampleRows.length ? sampleRows : filteredRows);
+
     if (src.length === 0) {
-      xMin = 0; xMax = 1; yMin = 0; yMax = 1;
+     xMin = 0; xMax = 1; yMin = 0; yMax = 1;
       return;
     }
-    const xs = src.map(d => d.Mileage);
-    const ys = src.map(d => d.Price);
 
-    xMin = Math.min(...xs);
-    xMax = Math.max(...xs);
+    // Single-pass min/max without spreading big arrays
+    let localXMin = Infinity;
+    let localXMax = -Infinity;
+    let localYMax = -Infinity;
+
+    for (let i = 0; i < src.length; i++) {
+     const d = src[i];
+     const x = d.Mileage;
+      const y = d.Price;
+      if (x < localXMin) localXMin = x;
+      if (x > localXMax) localXMax = x;
+      if (y > localYMax) localYMax = y;
+   }
+
+    xMin = localXMin;
+   xMax = localXMax;
     yMin = 0;
-    yMax = Math.max(...ys);
+    yMax = localYMax;
 
     const xPad = (xMax - xMin) * 0.05 || 1;
     xMin = Math.max(0, xMin - xPad);
@@ -200,6 +257,7 @@ window.sketch5 = function(p) {
     const yPad = (yMax - yMin) * 0.08 || 1;
     yMax = yMax + yPad;
   }
+
 
   function xScale(v) { return p.map(v, xMin, xMax, PAD.left, PAD.left + plotW); }
   function yScale(v) { return p.map(v, yMax, yMin, PAD.top,  PAD.top + plotH); }
@@ -244,7 +302,7 @@ window.sketch5 = function(p) {
     p.text("The Price of Time — Scatter", PAD.left, 18);
     p.textSize(13); p.fill(70);
     p.text("Price vs Mileage • Colors: Luxury (red), Mid-range (blue), Economy (green)",
-    PAD.left, 46);
+      PAD.left, 46);
     p.pop();
   }
 
@@ -270,9 +328,8 @@ window.sketch5 = function(p) {
     p.text("Segments:", x, y);
 
     let yc = y;
-    [["Luxury","red"],["Mid-range","blue"],["Economy","green"]].forEach((row, idx) => {
+    ["Luxury","Mid-range","Economy"].forEach(seg => {
       yc += 18;
-      const seg = row[0];
       const c = SEGMENT_COLORS[seg];
       p.fill(c[0], c[1], c[2]); p.rect(x + 82, yc - 7, 12, 12);
       p.noStroke(); p.fill(40); p.text(seg, x + 100, yc);
@@ -287,4 +344,4 @@ window.sketch5 = function(p) {
     const s = Math.round(v).toString();
     return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
-};
+});

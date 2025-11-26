@@ -14,17 +14,8 @@ const SKETCH_SCRIPT_BY_ID = {
     sk3: 'sketches/sketch3.js',
     sk4: 'sketches/sketch4.js',
     sk5: 'sketches/sketch5.js',
-    sk6: 'sketches/sketch6.js',
-    sk7: 'sketches/sketch7.js',
-    sk8: 'sketches/sketch8.js',
-    sk9: 'sketches/sketch9.js',
-    sk10: 'sketches/sketch10.js',
-    sk11: 'sketches/sketch11.js',
-    sk12: 'sketches/sketch12.js',
-    sk13: 'sketches/sketch13.js',
-    sk14: 'sketches/sketch14.js',
 };
-window.DEFAULT_SKETCH = 'sk4'
+window.DEFAULT_SKETCH = 'sk5'
 
 function getDefaultButton(buttons) {
     const params = new URLSearchParams(window.location.search);
